@@ -2,6 +2,7 @@ package com.miguel.prueba.services.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.miguel.prueba.exceptions.BusinessException;
 import com.miguel.prueba.models.JsonRequest;
 import com.miguel.prueba.models.Transform;
 import com.miguel.prueba.services.JSLTService;
@@ -25,13 +26,18 @@ public class JSLTServiceImpl implements JSLTService {
     @Override
     public Map<String, Object> processRequest(JsonRequest request) {
         Map<String, Object> response = new HashMap<>();
-        JsonNode jsonNode = objectMapper.valueToTree(request.getJson());
+        try {
+            JsonNode jsonNode = objectMapper.valueToTree(request.getJson());
 
-        processEventId(response, jsonNode);
-        request.getFeatureConfiguration()
-                .getTransforms()
-                .forEach(transform -> processTransform(response, jsonNode, transform));
+            processEventId(response, jsonNode);
+            request.getFeatureConfiguration()
+                    .getTransforms()
+                    .forEach(transform -> processTransform(response, jsonNode, transform));
 
+        } catch (Exception e) {
+            log.error("An error occurred while making transforms with JSLT.", e);
+            throw new BusinessException("An error occurred while making transforms with JSLT.");
+        }
         return response;
     }
 
